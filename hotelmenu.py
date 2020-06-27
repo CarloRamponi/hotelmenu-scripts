@@ -12,9 +12,9 @@ import threading
 
 def createImages(subdomain, camere, logo, langs, color):
 
-    W, H = 1063, 1417
-    QRSIZE = 350
-    QRPAD = 80
+    W, H = 1063, 1346
+    QRSIZE = 330
+    QRPAD = 50
 
     SITE_CODE = "https://{}.hotelmenu.it/?c={}"
     SITE_VISUAL = "{}.hotelmenu.it"
@@ -51,7 +51,7 @@ def createImages(subdomain, camere, logo, langs, color):
     font_big = ImageFont.truetype("grafiche/poppins.ttf", 50)
     font_bigger = ImageFont.truetype("grafiche/poppins.ttf", 80)
     font_not_really_big = ImageFont.truetype("grafiche/poppins.ttf", 100)
-    font_really_big = ImageFont.truetype("grafiche/poppins.ttf", 400)
+    font_really_big = ImageFont.truetype("grafiche/poppins.ttf", 450)
 
     INTRA_PADDING = 38
     INTER_PADDING = 12
@@ -83,7 +83,7 @@ def createImages(subdomain, camere, logo, langs, color):
 
     centerText(draw, SITE_VISUAL.format(subdomain), height_1, font_big, color, W - (QRSIZE + QRPAD))
 
-    height_1 += 100
+    height_1 += 80
 
     for l in langs:
         centerText(draw, STRINGS_BOTTOM[l], height_1, font, color, W - (QRSIZE + QRPAD), 0)
@@ -98,7 +98,7 @@ def createImages(subdomain, camere, logo, langs, color):
     if not os.path.exists("output/triangoli"):
         os.makedirs("output/triangoli")
 
-    height_1 += 30
+    height_1 += 20
 
     logo = qr.uploadimage(logo);
     print("Logo uploaded...")
