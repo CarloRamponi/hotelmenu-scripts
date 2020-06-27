@@ -8,6 +8,7 @@ import json
 import time
 from textwrap import wrap
 import platform
+import packprint
 import threading
 
 def createImages(subdomain, camere, logo, langs, color):
@@ -155,6 +156,11 @@ def createImages(subdomain, camere, logo, langs, color):
         else:
             os.system('sudo service tor restart')
         time.sleep(2)
+
+    packprint.packprint("output/triangoli.pdf", ["output/triangoli/"+c['nome']+".png" for c in camere])
+    packprint.packprint("output/orizzontali.pdf", ["output/orizzontali/"+c['nome']+".png" for c in camere])
+
+    print("PDF generated in output/")
 
 def main():
     if(len(sys.argv) < 3):

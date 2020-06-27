@@ -15,12 +15,12 @@ def drawBorders(image):
     dr.rectangle([(0, 0), (im.size[0]-thickness, im.size[1]-thickness)], outline=(189, 189, 189))
     return im
 
-def packprint(outdir, files):
+def packprint(outfile, files):
 
     PAGESIZE = (A4[0]*4, A4[1]*4)
     padding = (30*mm, 60*mm)
 
-    canvas = Canvas(os.path.join(outdir, "output.pdf"), pagesize=PAGESIZE)
+    canvas = Canvas(outfile, pagesize=PAGESIZE)
 
     for j, i in enumerate(range(0, len(files), 4)):
 
@@ -50,7 +50,7 @@ def main():
 
     dir = sys.argv[1]
     files = [os.path.join(dir, f) for f in os.listdir(dir) if os.path.isfile(os.path.join(dir, f))]
-    packprint(dir, files)
+    packprint(os.path.join(dir, "output.pdf"), files)
 
 if __name__ == "__main__":
     main()
