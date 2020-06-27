@@ -61,9 +61,9 @@ def createImages(subdomain, camere, logo, langs, color):
         w, h = draw.textsize(msg, font=font);
         draw.text((OFFSET+(W-w)/2, height), msg, color, font=font)
 
-    def centerTextV(draw, msg, font, color, H_OFFST=0):
+    def centerTextV(draw, msg, font, color, H, H_OFFST=0):
         w, h = draw.textsize(msg, font=font);
-        draw.text(((W-w)/2, (H/2-h)/2 + H_OFFST), msg, color, font=font)
+        draw.text(((W-w)/2, ((H-80)-h)/2 + H_OFFST), msg, color, font=font)
 
     im = Image.new("RGBA", (W, H), (255, 255, 255))
     draw = ImageDraw.Draw(im)
@@ -115,10 +115,10 @@ def createImages(subdomain, camere, logo, langs, color):
         # mi aspetto di ricevere camere con nomi del tipo: 100, 200, .. oppure 'Tavolo 1', 'Appartamento 1', ...
 
         if len(camera['nome'].split()) > 1:
-            centerTextV(draw_nomec, camera['nome'].split()[0], font_not_really_big, color, -130)
-            centerTextV(draw_nomec, camera['nome'].split()[1], font_really_big, color, 100)
+            centerTextV(draw_nomec, camera['nome'].split()[0], font_not_really_big, color, H//2, -160)
+            centerTextV(draw_nomec, camera['nome'].split()[1], font_really_big, color, H//2, 70)
         else:
-            centerTextV(draw_nomec, camera['nome'], font_really_big, color)
+            centerTextV(draw_nomec, camera['nome'], font_really_big, color, H//2)
 
         imc_o.paste(im_nomec)
         imc_t.paste(im_nomec.rotate(180))
