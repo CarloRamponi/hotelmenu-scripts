@@ -12,9 +12,9 @@ import threading
 
 def createImages(subdomain, camere, logo, langs, color):
 
-    W, H = 1063, 1346
+    W, H = 1060, 1335
     QRSIZE = 330
-    QRPAD = 50
+    QRPAD = 60
 
     SITE_CODE = "https://{}.hotelmenu.it/?c={}"
     SITE_VISUAL = "{}.hotelmenu.it"
@@ -83,7 +83,7 @@ def createImages(subdomain, camere, logo, langs, color):
 
     centerText(draw, SITE_VISUAL.format(subdomain), height_1, font_big, color, W - (QRSIZE + QRPAD))
 
-    height_1 += 80
+    height_1 += 70
 
     for l in langs:
         centerText(draw, STRINGS_BOTTOM[l], height_1, font, color, W - (QRSIZE + QRPAD), 0)
