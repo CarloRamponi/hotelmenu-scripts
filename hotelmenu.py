@@ -8,6 +8,7 @@ import json
 import time
 from textwrap import wrap
 import platform
+import threading
 
 def createImages(subdomain, camere, logo, langs, color):
 
@@ -46,6 +47,12 @@ def createImages(subdomain, camere, logo, langs, color):
         "fr" : "et entrez:"
     }
 
+    font = ImageFont.truetype("grafiche/poppins.ttf", 34)
+    font_big = ImageFont.truetype("grafiche/poppins.ttf", 50)
+    font_bigger = ImageFont.truetype("grafiche/poppins.ttf", 80)
+    font_not_really_big = ImageFont.truetype("grafiche/poppins.ttf", 100)
+    font_really_big = ImageFont.truetype("grafiche/poppins.ttf", 400)
+
     INTRA_PADDING = 38
     INTER_PADDING = 12
     START_HEIGTH = H//2 + 30
@@ -58,18 +65,11 @@ def createImages(subdomain, camere, logo, langs, color):
         w, h = draw.textsize(msg, font=font);
         draw.text(((W-w)/2, (H/2-h)/2 + H_OFFST), msg, color, font=font)
 
-
     im = Image.new("RGBA", (W, H), (255, 255, 255))
     draw = ImageDraw.Draw(im)
 
     im_nome = Image.new("RGBA", (W, H//2), (255, 255, 255))
     draw_nome = ImageDraw.Draw(im)
-
-    font = ImageFont.truetype("grafiche/poppins.ttf", 34)
-    font_big = ImageFont.truetype("grafiche/poppins.ttf", 50)
-    font_bigger = ImageFont.truetype("grafiche/poppins.ttf", 80)
-    font_not_really_big = ImageFont.truetype("grafiche/poppins.ttf", 100)
-    font_really_big = ImageFont.truetype("grafiche/poppins.ttf", 400)
 
     height = START_HEIGTH;
 
@@ -101,21 +101,9 @@ def createImages(subdomain, camere, logo, langs, color):
     height_1 += 30
 
     logo = qr.uploadimage(logo);
+    print("Logo uploaded...")
 
-    counter = 0
-
-    for camera in camere:
-
-        counter += 1
-        if counter > 16:
-            print("Il sito si sta insospettendo...\nEseguo 'sudo service tor restart', inserisci la password se richiesto")
-            if "MANJARO" in platform.release():
-                os.system('sudo systemctl restart tor')
-            else:
-                os.system('sudo service tor restart')
-            time.sleep(2)
-            counter = 0
-
+    def creaCameraImg(camera):
         imc_o = im.copy()
         imc_t = im.copy()
         drawc_o = ImageDraw.Draw(imc_o)
@@ -135,7 +123,7 @@ def createImages(subdomain, camere, logo, langs, color):
         imc_o.paste(im_nomec)
         imc_t.paste(im_nomec.rotate(180))
 
-        # time.sleep(2)
+
         qrfile = qr.createQR(SITE_CODE.format(subdomain, camera['codice']), QRSIZE, logo, color)
         qrimg = Image.open(qrfile)
 
@@ -148,6 +136,25 @@ def createImages(subdomain, camere, logo, langs, color):
         imc_o.save('output/orizzontali/'+camera['nome']+'.png', 'PNG', dpi=(300, 300))
         imc_t.save('output/triangoli/'+camera['nome']+'.png', 'PNG', dpi=(300, 300))
         print(camera['nome'], "--> OK")
+
+    for chunk in range(0, len(camere), 15):
+
+        threads = []
+
+        for c in camere[chunk:chunk+15]:
+            t = threading.Thread(target=creaCameraImg, args=(c,))
+            threads.append(t)
+            t.start()
+
+        for t in threads:
+            t.join()
+
+        print("Il sito si sta insospettendo...\nEseguo 'sudo service tor restart', inserisci la password se richiesto")
+        if "MANJARO" in platform.release():
+            os.system('sudo systemctl restart tor')
+        else:
+            os.system('sudo service tor restart')
+        time.sleep(2)
 
 def main():
     if(len(sys.argv) < 3):
