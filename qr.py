@@ -21,7 +21,7 @@ def createQR(url, size, image, color):
 
     c_str = "#"
     for c in color:
-        c_str += hex(c)[2:]
+        c_str += '0x{0:0{1}X}'.format(c,2)[2:]
 
     r = requests.post('https://qr-generator.qrcode.studio/qr/custom', json = {
         "data" : url,
