@@ -50,6 +50,8 @@ def main():
 
     dir = sys.argv[1]
     files = [os.path.join(dir, f) for f in os.listdir(dir) if os.path.isfile(os.path.join(dir, f))]
+    files.sort()
+    files = [f for f in files if f.split(".")[0][-1] != "F"] + [f for f in files if f.split(".")[0][-1] == "F"]
     packprint(os.path.join(dir, "output.pdf"), files)
 
 if __name__ == "__main__":
