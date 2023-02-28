@@ -1,67 +1,20 @@
-import requests
-import json
-import shutil
-import uuid
 import os
 import tempfile
+import qrcode
+from PIL import Image
 
-proxies = {
-  "http": "socks5://127.0.0.1:9050",
-  "https": "socks5://127.0.0.1:9050",
-}
+def createQR(url, size, color):
 
-def uploadimage(image):
-    with open(image, 'rb') as f:
-        r = requests.post('https://qr-generator.qrcode.studio/qr/uploadimage', files = { 'file' : f }, proxies=proxies)
-    file = r.json()['file']
-    del r
-    return file
+    qr = qrcode.QRCode(
+        version=1,
+        error_correction=qrcode.constants.ERROR_CORRECT_L,
+        box_size=10,
+        border=0,
+    )
 
-def createQR(url, size, image, color):
+    qr.add_data(url)
+    qr.make(fit=True)
+    img = qr.make_image(fill_color=color, back_color="white")
+    img = img.resize((size, size), Image.ANTIALIAS)
 
-    c_str = "#"
-    for c in color:
-        c_str += '0x{0:0{1}X}'.format(c,2)[2:]
-
-    r = requests.post('https://qr-generator.qrcode.studio/qr/custom', json = {
-        "data" : url,
-        "config" : {
-            "body" : "square",
-            "eye" : "frame0",
-            "eyeBall" : "ball0",
-            "erf1" : [],
-            "erf2" : [],
-            "erf3" : [],
-            "brf1" : [],
-            "brf2" : [],
-            "brf3" : [],
-            "bodyColor" : c_str,
-            "bgColor" : "#FFFFFF",
-            "eye1Color" : c_str,
-            "eye2Color" : c_str,
-            "eye3Color" : c_str,
-            "eyeBall1Color" : c_str,
-            "eyeBall2Color" : c_str,
-            "eyeBall3Color" : c_str,
-            "gradientColor1" : "",
-            "gradientColor2" : "",
-            "gradientType" : "linear",
-            "gradientOnEyes" : "true",
-            "logo" : image,
-            "logoMode" : "clean"
-        },
-        "size" : size,
-        "download" : "imageUrl",
-        "file" : "png"
-    }, proxies=proxies)
-
-    img = "https:" + r.json()['imageUrl']
-    del r
-
-    file = tempfile.NamedTemporaryFile(suffix='.png', prefix='qr_', delete=False)
-
-    r = requests.get(img, stream=True)
-    shutil.copyfileobj(r.raw, file)
-    del r
-
-    return file.name
+    return img

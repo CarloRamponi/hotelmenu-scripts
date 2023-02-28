@@ -11,7 +11,7 @@ import platform
 import packprint
 import threading
 
-def createImages(subdomain, camere, logo, langs, color):
+def createImages(subdomain, camere, langs, color):
 
     W, H = 1060, 1335
     QRSIZE = 330
@@ -101,9 +101,6 @@ def createImages(subdomain, camere, logo, langs, color):
 
     height_1 += 20
 
-    logo = qr.uploadimage(logo);
-    print("Logo uploaded...")
-
     def creaCameraImg(camera):
         imc_o = im.copy()
         imc_t = im.copy()
@@ -124,9 +121,7 @@ def createImages(subdomain, camere, logo, langs, color):
         imc_o.paste(im_nomec)
         imc_t.paste(im_nomec.rotate(180))
 
-
-        qrfile = qr.createQR(SITE_CODE.format(subdomain, camera['codice']), QRSIZE, logo, color)
-        qrimg = Image.open(qrfile)
+        qrimg = qr.createQR(SITE_CODE.format(subdomain, camera['codice']), QRSIZE, color)
 
         imc_o.paste(qrimg, (W-(QRSIZE+QRPAD), H-(QRSIZE+QRPAD)))
         imc_t.paste(qrimg, (W-(QRSIZE+QRPAD), H-(QRSIZE+QRPAD)))
@@ -150,47 +145,31 @@ def createImages(subdomain, camere, logo, langs, color):
         for t in threads:
             t.join()
 
-        print("Il sito si sta insospettendo...\nEseguo 'sudo service tor restart', inserisci la password se richiesto")
-        if "MANJARO" in platform.release():
-            os.system('sudo systemctl restart tor')
-        else:
-            os.system('sudo service tor restart')
-        time.sleep(2)
-
     packprint.packprint("output/triangoli.pdf", ["output/triangoli/"+c['nome']+".png" for c in camere])
     packprint.packprint("output/orizzontali.pdf", ["output/orizzontali/"+c['nome']+".png" for c in camere])
 
     print("PDF generated in output/")
 
 def main():
-    if(len(sys.argv) < 3):
-        print("usage: ./hotelmenu.py json_file logo_file [languages (json)]")
+    if(len(sys.argv) < 2 ):
+        print("usage: ./hotelmenu.py json_file [languages (json)]")
         sys.exit(1)
-
-    logo = sys.argv[2]
 
     with open(sys.argv[1], "r") as f:
         jj = json.loads(f.read())
 
-    if(len(sys.argv) > 3):
-        langs = json.loads(sys.argv[3])
+    if(len(sys.argv) > 2):
+        langs = json.loads(sys.argv[2])
     else:
         langs = ["it", "en", "de"]
 
     color = tuple(int(a, 16) for a in wrap(jj['color'], 2))
 
-    print("Eseguo 'sudo service tor start', inserisci la password se richiesto")
-    if "MANJARO" in platform.release():
-        os.system('sudo systemctl start tor')
-    else:
-        os.system('sudo service tor start')
-    time.sleep(2)
-
-    createImages(jj['subdomain'], jj['camere'], logo, langs, color)
+    createImages(jj['subdomain'], jj['camere'], langs, color)
 
     print("immagini create in output/")
 
 if __name__ == "__main__":
     main()
 
-# createImages("demo", [{'nome' : "100", 'codice' : 'ABCD'}, {'nome' : "102", 'codice' : 'GH64'}], 'grafiche/logo.png', ['it', 'en', 'de'], (1, 117, 33))
+# createImages("demo", [{'nome' : "100", 'codice' : 'ABCD'}, {'nome' : "102", 'codice' : 'GH64'}], ['it', 'en', 'de'], (1, 117, 33))
