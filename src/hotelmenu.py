@@ -11,7 +11,7 @@ import platform
 import packprint
 import threading
 
-def createImages(subdomain, codice, nomi, logo, langs, color):
+def createImages(subdomain, camere, langs, color):
 
     W, H = 1060, 1335
     QRSIZE = 330
@@ -70,7 +70,7 @@ def createImages(subdomain, codice, nomi, logo, langs, color):
     draw = ImageDraw.Draw(im)
 
     im_nome = Image.new("RGBA", (W, H//2), (255, 255, 255))
-    draw_nome = ImageDraw.Draw(im_nome)
+    draw_nome = ImageDraw.Draw(im)
 
     height = START_HEIGTH;
 
@@ -101,18 +101,7 @@ def createImages(subdomain, codice, nomi, logo, langs, color):
 
     height_1 += 20
 
-    logo = qr.uploadimage(logo);
-    print("Logo uploaded...")
-
-    qrfile = qr.createQR(SITE_CODE.format(subdomain, codice), QRSIZE, logo, color)
-    qrimg = Image.open(qrfile)
-
-    im.paste(qrimg, (W-(QRSIZE+QRPAD), H-(QRSIZE+QRPAD)))
-
-    centerText(draw, codice.upper(), height_1, font_bigger, color, W - (QRSIZE + QRPAD), 0)
-
-    for nome in nomi:
-
+    def creaCameraImg(camera):
         imc_o = im.copy()
         imc_t = im.copy()
         drawc_o = ImageDraw.Draw(imc_o)
@@ -123,54 +112,77 @@ def createImages(subdomain, codice, nomi, logo, langs, color):
 
         # mi aspetto di ricevere camere con nomi del tipo: 100, 200, .. oppure 'Tavolo 1', 'Appartamento 1', ...
 
-        if len(nome.split()) > 1:
-            centerTextV(draw_nomec, nome.split()[0], font_not_really_big, color, H//2, -160)
-            centerTextV(draw_nomec, nome.split()[1], font_really_big, color, H//2, 70)
+        if len(camera['nome'].split()) > 1:
+            centerTextV(draw_nomec, camera['nome'].split()[0], font_not_really_big, color, H//2, -160)
+            centerTextV(draw_nomec, camera['nome'].split()[1], font_really_big, color, H//2, 70)
         else:
-            centerTextV(draw_nomec, nome, font_really_big, color, H//2)
+            centerTextV(draw_nomec, camera['nome'], font_really_big, color, H//2)
 
         imc_o.paste(im_nomec)
         imc_t.paste(im_nomec.rotate(180))
 
-        imc_o.save('output/orizzontali/'+nome+'.png', 'PNG', dpi=(300, 300))
-        imc_t.save('output/triangoli/'+nome+'.png', 'PNG', dpi=(300, 300))
-        print(nome, "--> OK")
+        qrimg = qr.createQR(SITE_CODE.format(subdomain, camera['codice']), QRSIZE, color)
 
-    packprint.packprint("output/triangoli.pdf", ["output/triangoli/"+n+".png" for n in nomi])
-    packprint.packprint("output/orizzontali.pdf", ["output/orizzontali/"+n+".png" for n in nomi])
+        imc_o.paste(qrimg, (W-(QRSIZE+QRPAD), H-(QRSIZE+QRPAD)))
+        imc_t.paste(qrimg, (W-(QRSIZE+QRPAD), H-(QRSIZE+QRPAD)))
+
+        centerText(drawc_o, camera['codice'].upper(), height_1, font_bigger, color, W - (QRSIZE + QRPAD), 0)
+        centerText(drawc_t, camera['codice'].upper(), height_1, font_bigger, color, W - (QRSIZE + QRPAD), 0)
+
+        imc_o.save('output/orizzontali/'+camera['nome']+'.png', 'PNG', dpi=(300, 300))
+        imc_t.save('output/triangoli/'+camera['nome']+'.png', 'PNG', dpi=(300, 300))
+        print(camera['nome'], "--> OK")
+
+    for chunk in range(0, len(camere), 15):
+
+        threads = []
+
+        for c in camere[chunk:chunk+15]:
+            t = threading.Thread(target=creaCameraImg, args=(c,))
+            threads.append(t)
+            t.start()
+
+        for t in threads:
+            t.join()
+
+    packprint.packprint("output/triangoli.pdf", ["output/triangoli/"+c['nome']+".png" for c in camere])
+    packprint.packprint("output/orizzontali.pdf", ["output/orizzontali/"+c['nome']+".png" for c in camere])
 
     print("PDF generated in output/")
 
 def main():
-    if(len(sys.argv) < 3):
-        print("usage: ./fisso_oneqr.py json_file logo nomi(json) [traduzioni(json)]")
+    if(len(sys.argv) < 2 ):
+        print("usage: ./hotelmenu.py json_file [languages (json)]")
         sys.exit(1)
 
-    logo = sys.argv[2]
+    camere = sys.argv[1]
+    if not os.path.exists(camere):
+        camere = os.path.join("/app/input/", camere)
+        if not os.path.exists(camere):
+            print(f"File {sys.argv[1]} not found")
+            sys.exit(1)
 
-    with open(sys.argv[1], "r") as f:
+    with open(camere, "r") as f:
         jj = json.loads(f.read())
 
-    with open(sys.argv[3], "r") as f:
-        nomi = json.loads(f.read())
-
-    if(len(sys.argv) > 4):
-        langs = json.loads(sys.argv[4])
+    if(len(sys.argv) > 2):
+        langs = sys.argv[2]
+        if not os.path.exists(langs):
+            langs = os.path.join("/app/input/", langs)
+            if not os.path.exists(langs):
+                print(f"File {sys.argv[2]} not found")
+                sys.exit(1)
+        langs = json.loads(langs)
     else:
         langs = ["it", "en", "de"]
 
     color = tuple(int(a, 16) for a in wrap(jj['color'], 2))
 
-    print("Eseguo 'sudo service tor start', inserisci la password se richiesto")
-    if "MANJARO" in platform.release():
-        os.system('sudo systemctl start tor')
-    else:
-        os.system('sudo service tor start')
-    time.sleep(2)
-
-    createImages(jj['subdomain'], jj['codice'], nomi, logo, langs, color)
+    createImages(jj['subdomain'], jj['camere'], langs, color)
 
     print("immagini create in output/")
 
 if __name__ == "__main__":
     main()
+
+# createImages("demo", [{'nome' : "100", 'codice' : 'ABCD'}, {'nome' : "102", 'codice' : 'GH64'}], ['it', 'en', 'de'], (1, 117, 33))
