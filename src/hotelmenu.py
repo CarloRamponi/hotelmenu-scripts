@@ -22,21 +22,19 @@ def createImages(subdomain, camere, langs, color):
 
     STRINGS = {
         "it" : [
-            "Appoggia il tuo smartphone,",
-            "oppure scansiona il codice, oppure visita:"
+            "Scansiona il codice, oppure visita:"
         ],
         "en" : [
-            "Tap with your smartphone, or scan the code, or visit:",
+            "Scan the code, or visit:",
         ],
         "de" : [
-            "Tippen Sie mit Ihrem Smartphone auf,",
-            "scannen Sie den Code oder besuchen Sie:"
+            "Scannen Sie den Code oder besuchen Sie:"
         ],
         "po" : [
-            "Stuknij w smartfonie lub zeskanuj kod lub odwiedź:"
+            "Zeskanuj kod lub odwiedź stronę:"
         ],
         "fr" : [
-            "Appuyez avec votre smartphone, ou scannez le code, ou visitez:"
+            "Scannez le code, ou visitez:"
         ]
     }
 
@@ -80,11 +78,11 @@ def createImages(subdomain, camere, langs, color):
             height += INTRA_PADDING
         height += INTER_PADDING
 
-    height_1 = height + 35
+    height_1 = height + 70
 
     centerText(draw, SITE_VISUAL.format(subdomain), height_1, font_big, color, W - (QRSIZE + QRPAD))
 
-    height_1 += 70
+    height_1 += 80
 
     for l in langs:
         centerText(draw, STRINGS_BOTTOM[l], height_1, font, color, W - (QRSIZE + QRPAD), 0)
